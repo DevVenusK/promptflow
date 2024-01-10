@@ -59,13 +59,15 @@ def collect_tools_from_directory(base_dir) -> dict:
     return tools
 
 
-def set_default_input_index_ui_hint(tool):
+def set_input_index_to_ui_hints(tool, func_name=""):
     inputs_dict = tool["inputs"]
     input_index = 0
     for input_name, settings in inputs_dict.items():
         if "input_type" in settings.keys() and settings["input_type"] == "uionly_hidden":
             continue
         settings.setdefault("ui_hints", {})
+        module_logger.debug(f"debug ui_hints in set_input_index_to_ui_hints is {settings['ui_hints']}  \n func_name is {func_name}")
+        print(f"debug ui_hints in set_input_index_to_ui_hints is {settings['ui_hints']}  \n func_name is {func_name}")
         settings["ui_hints"]["index"] = input_index
         input_index += 1
 
@@ -109,7 +111,7 @@ def collect_package_tools(keys: Optional[List[str]] = None) -> dict:
                 tool["package_version"] = entry_point.dist.version
                 # Set default input index to ui_hints
                 if "inputs" in tool:
-                    set_default_input_index_ui_hint(tool)
+                    set_input_index_to_ui_hints(tool, "collect_package_tools")
                 all_package_tools[identifier] = tool
         except Exception as e:
             msg = (
@@ -142,7 +144,7 @@ def collect_package_tools_and_connections(keys: Optional[List[str]] = None) -> d
                 tool["package_version"] = entry_point.dist.version
                 # Set default input index to ui_hints
                 if "inputs" in tool:
-                    set_default_input_index_ui_hint(tool)
+                    set_input_index_to_ui_hints(tool, "collect_package_tools_and_connections")
                 all_package_tools[identifier] = tool
 
                 # Get custom strong type connection definition
