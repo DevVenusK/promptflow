@@ -44,7 +44,7 @@ class AsyncNodesScheduler:
         self._task_last_log_time = {}
         self._dag_manager_completed_event = threading.Event()
 
-    async def _execute_with_timeout(
+    async def _execute(
         self,
         executor: ThreadPoolExecutor,
         nodes: List[Node],
@@ -101,7 +101,7 @@ class AsyncNodesScheduler:
         # See reference: https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.Executor
         try:
             if line_timeout_sec is not None:
-                outputs = await self._execute_with_timeout(executor, nodes, inputs, context, line_timeout_sec)
+                outputs = await self._execute(executor, nodes, inputs, context, line_timeout_sec)
             else:
                 outputs = await self._execute_with_thread_pool(executor, nodes, inputs, context)
         except Exception as e:
