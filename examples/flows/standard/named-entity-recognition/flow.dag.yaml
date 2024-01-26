@@ -1,38 +1,43 @@
 $schema: https://azuremlschemas.azureedge.net/promptflow/latest/Flow.schema.json
+environment:
+  python_requirements_txt: requirements.txt
 inputs:
-  entity_type:
+  UserID:
     type: string
-    default: job title
-  text:
-    type: string
-    default: Maxime is a data scientist at Auto Dataset, and his wife is a finance
-      manager in the same company.
+    default: "212309"
 outputs:
-  entities:
+  "\bresult":
     type: string
-    reference: ${cleansing.output}
+    reference: ${sumerize.output}
 nodes:
-- name: NER_LLM
-  type: llm
-  source:
-    type: code
-    path: NER_LLM.jinja2
-  inputs:
-    # This is to easily switch between openai and azure openai.
-    # deployment_name is required by azure openai, model is required by openai.
-    deployment_name: gpt-35-turbo
-    model: gpt-3.5-turbo
-    max_tokens: 64
-    text: ${inputs.text}
-    entity_type: ${inputs.entity_type}
-  connection: open_ai_connection
-  api: chat
-- name: cleansing
+- name: FindUser
   type: python
   source:
     type: code
-    path: cleansing.py
+    path: FindUser.py
   inputs:
-    entities_str: ${NER_LLM.output}
-environment:
-  python_requirements_txt: requirements.txt
+    userID: ${inputs.UserID}
+- name: UserSpecs
+  type: python
+  source:
+    type: code
+    path: UserSpecs.py
+  inputs:
+    user: ${FindUser.output}
+- name: loanLimits
+  type: python
+  source:
+    type: code
+    path: loanLimits.py
+  inputs:
+    users: ${UserSpecs.output}
+- name: sumerize
+  type: llm
+  source:
+    type: code
+    path: sumerize.jinja2
+  inputs:
+    deployment_name: gpt-35-turbo-16k
+    dictionary: ${loanLimits.output}
+  connection: aoi_canada
+  api: chat
